@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.55
-	github.com/molon/genx v0.0.0-20241121153941-f3d024255bc4
+	github.com/molon/genx v0.0.0-20241121164018-0fef024420ea
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.11.1
 	github.com/rs/xid v1.6.0
@@ -75,4 +75,4 @@ require (
 	mvdan.cc/gofumpt v0.7.0 // indirect
 )
 
-replace github.com/molon/genx => ../../
+// replace github.com/molon/genx => ../../
