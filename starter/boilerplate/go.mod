@@ -1,10 +1,10 @@
 module github.com/molon/genx/starter/boilerplate
 
-go 1.23.1
+go 1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.55
-	github.com/molon/genx v0.0.0-20241121151725-6522f3c8e036
+	github.com/molon/genx v0.0.0-20241121153941-f3d024255bc4
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.11.1
 	github.com/rs/xid v1.6.0
