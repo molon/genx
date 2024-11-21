@@ -1,0 +1,467 @@
+#
+
+scalar Time
+#
+
+scalar Cursor
+#
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: Cursor
+  endCursor: Cursor
+}
+#
+
+enum OrderDirection {
+  ASC
+  DESC
+}
+#
+
+input StringFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  isNull: Boolean
+  fold: Boolean
+}
+#
+
+input IntFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  isNull: Boolean
+}
+#
+
+input FloatFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  isNull: Boolean
+}
+#
+
+input BooleanFilter {
+  equals: String
+  not: String
+  isNull: Boolean
+}
+#
+
+input TimeFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  isNull: Boolean
+}
+#
+
+input IDFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  isNull: Boolean
+  fold: Boolean
+}
+#
+
+input EnumFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  isNull: Boolean
+}
+#
+
+type Company {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  name: String!
+  description: String
+  manager: User
+  employees(after: Cursor, first: Int, before: Cursor, last: Int, filterBy: UserFilter, orderBy: [UserOrder!]): UserConnection!
+  viewerPermission: CompanyViewerPermission!
+}
+#
+
+type CompanyConnection {
+  nodes: [Company!]!
+  edges: [CompanyEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+#
+
+type CompanyEdge {
+  node: Company!
+  cursor: Cursor!
+}
+#
+
+input CompanyFilter {
+  not: CompanyFilter
+  and: [CompanyFilter!]
+  or: [CompanyFilter!]
+  id: IDFilter
+  createdAt: TimeFilter
+  updatedAt: TimeFilter
+  name: StringFilter
+  description: StringFilter
+  manager: UserFilter
+}
+#
+
+input CompanyOrder {
+  field: CompanyOrderField!
+  direction: OrderDirection!
+}
+#
+
+enum CompanyOrderField {
+  ID
+  CREATED_AT
+  UPDATED_AT
+  NAME
+  DESCRIPTION
+}
+#
+
+input CreateCompanyInput {
+  clientMutationId: String
+  name: String!
+  description: String
+  managerId: ID
+}
+#
+
+type CreateCompanyPayload {
+  clientMutationId: String
+  company: Company!
+}
+#
+
+input UpdateCompanyInput {
+  clientMutationId: String
+  companyId: ID!
+  name: String
+  description: String
+  managerId: ID
+}
+#
+
+type UpdateCompanyPayload {
+  clientMutationId: String
+  company: Company!
+}
+#
+
+input DeleteCompanyInput {
+  clientMutationId: String
+  companyId: ID!
+}
+#
+
+type DeleteCompanyPayload {
+  clientMutationId: String
+  company: Company!
+}
+#
+
+type CompanyViewerPermission {
+  canCreate: Boolean!
+  canUpdate: Boolean!
+  canDelete: Boolean!
+}
+#
+
+type User {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  name: String!
+  description: String
+  age: Int!
+  company: Company!
+  tasks(after: Cursor, first: Int, before: Cursor, last: Int, filterBy: TaskFilter, orderBy: [TaskOrder!]): TaskConnection!
+  viewerPermission: UserViewerPermission!
+}
+#
+
+type UserConnection {
+  nodes: [User!]!
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+#
+
+type UserEdge {
+  node: User!
+  cursor: Cursor!
+}
+#
+
+input UserFilter {
+  not: UserFilter
+  and: [UserFilter!]
+  or: [UserFilter!]
+  id: IDFilter
+  createdAt: TimeFilter
+  updatedAt: TimeFilter
+  name: StringFilter
+  description: StringFilter
+  age: IntFilter
+  company: CompanyFilter
+}
+#
+
+input UserOrder {
+  field: UserOrderField!
+  direction: OrderDirection!
+}
+#
+
+enum UserOrderField {
+  ID
+  CREATED_AT
+  UPDATED_AT
+  NAME
+  DESCRIPTION
+  AGE
+}
+#
+
+input CreateUserInput {
+  clientMutationId: String
+  name: String!
+  description: String
+  age: Int!
+  companyId: ID!
+}
+#
+
+type CreateUserPayload {
+  clientMutationId: String
+  user: User!
+}
+#
+
+input UpdateUserInput {
+  clientMutationId: String
+  userId: ID!
+  name: String
+  description: String
+  age: Int
+  companyId: ID
+}
+#
+
+type UpdateUserPayload {
+  clientMutationId: String
+  user: User!
+}
+#
+
+input DeleteUserInput {
+  clientMutationId: String
+  userId: ID!
+}
+#
+
+type DeleteUserPayload {
+  clientMutationId: String
+  user: User!
+}
+#
+
+type UserViewerPermission {
+  canCreate: Boolean!
+  canUpdate: Boolean!
+  canDelete: Boolean!
+}
+#
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+}
+#
+
+type Task {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  title: String!
+  description: String
+  status: TaskStatus!
+  assignee: User
+  viewerPermission: TaskViewerPermission!
+}
+#
+
+type TaskConnection {
+  nodes: [Task!]!
+  edges: [TaskEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+#
+
+type TaskEdge {
+  node: Task!
+  cursor: Cursor!
+}
+#
+
+input TaskFilter {
+  not: TaskFilter
+  and: [TaskFilter!]
+  or: [TaskFilter!]
+  id: IDFilter
+  createdAt: TimeFilter
+  updatedAt: TimeFilter
+  title: StringFilter
+  description: StringFilter
+  status: EnumFilter
+  assignee: UserFilter
+}
+#
+
+input TaskOrder {
+  field: TaskOrderField!
+  direction: OrderDirection!
+}
+#
+
+enum TaskOrderField {
+  ID
+  CREATED_AT
+  UPDATED_AT
+  TITLE
+  DESCRIPTION
+  STATUS
+}
+#
+
+input CreateTaskInput {
+  clientMutationId: String
+  title: String!
+  description: String
+  status: TaskStatus!
+  assigneeId: ID
+}
+#
+
+type CreateTaskPayload {
+  clientMutationId: String
+  task: Task!
+}
+#
+
+input UpdateTaskInput {
+  clientMutationId: String
+  taskId: ID!
+  title: String
+  description: String
+  status: TaskStatus
+  assigneeId: ID
+}
+#
+
+type UpdateTaskPayload {
+  clientMutationId: String
+  task: Task!
+}
+#
+
+input DeleteTaskInput {
+  clientMutationId: String
+  taskId: ID!
+}
+#
+
+type DeleteTaskPayload {
+  clientMutationId: String
+  task: Task!
+}
+#
+
+type TaskViewerPermission {
+  canCreate: Boolean!
+  canUpdate: Boolean!
+  canDelete: Boolean!
+}
+#
+
+extend type Query {
+  companies(after: Cursor, first: Int, before: Cursor, last: Int, filterBy: CompanyFilter, orderBy: [CompanyOrder!]): CompanyConnection!
+}
+#
+
+extend type Mutation {
+  createCompany(input: CreateCompanyInput!): CreateCompanyPayload!
+  updateCompany(input: UpdateCompanyInput!): UpdateCompanyPayload!
+  deleteCompany(input: DeleteCompanyInput!): DeleteCompanyPayload!
+}
+#
+
+extend type Query {
+  users(after: Cursor, first: Int, before: Cursor, last: Int, filterBy: UserFilter, orderBy: [UserOrder!]): UserConnection!
+}
+#
+
+extend type Mutation {
+  createUser(input: CreateUserInput!): CreateUserPayload!
+  updateUser(input: UpdateUserInput!): UpdateUserPayload!
+  deleteUser(input: DeleteUserInput!): DeleteUserPayload!
+}
+#
+
+extend type Query {
+  tasks(after: Cursor, first: Int, before: Cursor, last: Int, filterBy: TaskFilter, orderBy: [TaskOrder!]): TaskConnection!
+}
+#
+
+extend type Mutation {
+  createTask(input: CreateTaskInput!): CreateTaskPayload!
+  updateTask(input: UpdateTaskInput!): UpdateTaskPayload!
+  deleteTask(input: DeleteTaskInput!): DeleteTaskPayload!
+}

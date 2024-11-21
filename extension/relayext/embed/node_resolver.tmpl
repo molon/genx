@@ -1,0 +1,305 @@
+package resolver
+
+import (
+	"context"
+	"time"
+
+	"{{.GoModule}}/server/model"
+	"github.com/molon/genx/pkg/gqlx"
+	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/theplant/relay"
+	"github.com/theplant/relay/cursor"
+	"github.com/theplant/relay/gormrelay"
+	"github.com/vikstrous/dataloadgen"
+	"gorm.io/gorm"
+)
+
+type {{ .Name }}Resolver struct {
+	*Resolver
+	pagination relay.Pagination[*model.{{ .Name }}]
+}
+
+func New{{ .Name }}Resolver(r *Resolver) *{{ .Name }}Resolver {
+	c := &{{ .Name }}Resolver{Resolver: r}
+	c.initPagination()
+	return c
+}
+
+func (c *{{ .Name }}Resolver) initPagination() {
+	c.pagination = relay.New(
+		cursor.Base64(func(ctx context.Context, req *relay.ApplyCursorsRequest) (*relay.ApplyCursorsResponse[*model.{{ .Name }}], error) {
+			// TODO: 做一下 select 处理？并且对于 keyset 的情况一定要包含最终的 order by 字段
+			return gormrelay.NewKeysetAdapter[*model.{{ .Name }}](c.DB(ctx))(ctx, req)
+		}),
+		relay.EnsureLimits[*model.{{ .Name }}](100, 10),
+		relay.EnsurePrimaryOrderBy[*model.{{ .Name }}](
+			relay.OrderBy{Field: "CreatedAt", Desc: false},
+		),
+	)
+}
+
+func (c *{{ .Name }}Resolver) batchRead(ctx context.Context, ids []string) ([]*model.{{ .Name }}, []error) {
+	if len(ids) == 0 {
+		return []*model.{{ .Name }}{}, nil
+	}
+
+	db := c.DB(ctx)
+
+	var {{ .Name | camelCase | plural }} []*model.{{ .Name }}
+	if err := db.Find(&{{ .Name | camelCase | plural }}, "id IN ?", ids).Error; err != nil {
+		return nil, []error{errors.Wrap(err, "failed to find {{ .Name | camelCase | plural }}")}
+	}
+	return {{ .Name | camelCase | plural }}, nil
+}
+
+func (c *{{ .Name }}Resolver) NewLoader() *dataloadgen.Loader[string, *model.{{ .Name }}] {
+	return dataloadgen.NewLoader(
+		c.batchRead,
+		dataloadgen.WithBatchCapacity(100),
+		dataloadgen.WithWait(5*time.Millisecond),
+	)
+}
+
+func (c *{{ .Name }}Resolver) Loader(ctx context.Context) *dataloadgen.Loader[string, *model.{{ .Name }}] {
+	return c.Resolver.Loader(ctx).{{ .Name }}
+}
+
+func (c *{{ .Name }}Resolver) Get(ctx context.Context, id *string) (*model.{{ .Name }}, error) {
+	if id == nil {
+		// TODO: should return nil or error?
+		return nil, nil
+	}
+	return c.Loader(ctx).Load(ctx, *id)
+}
+
+func (c *{{ .Name }}Resolver) List(ctx context.Context, after *string, first *int, before *string, last *int, _ *model.{{ .Name }}Filter, orderBy []*model.{{ .Name }}Order) (*model.{{ .Name }}Connection, error) {
+	return c.pagination.Paginate(
+		relay.WithNodeProcessor(
+			gqlx.WithSkippedConnection(ctx),
+			func(node *model.{{ .Name }}) *model.{{ .Name }} {
+				// TODO: 如果某 id 对应的已经在 cache 里了，那之前从 cache 里取出来的数据使用的地方貌似不一定会和这里一致吧。貌似应该让 dataloader 支持先直接取 cache 。
+				c.Loader(ctx).Prime(node.ID, node)
+				return node
+			},
+		),
+		&relay.PaginateRequest[*model.{{ .Name }}]{
+			First: first, After: after, Last: last, Before: before,
+			OrderBys: lo.Map(orderBy, func(order *model.{{ .Name }}Order, _ int) relay.OrderBy {
+				return relay.OrderBy{
+					Field: lo.PascalCase(order.Field.String()),
+					Desc:  order.Direction == model.OrderDirectionDesc,
+				}
+			}),
+		},
+	)
+}
+
+{{- range $o := .OneToOne }}
+func (c *{{ $.Name }}Resolver) {{ $o.Name | pascalCase }}(ctx context.Context, {{ $.Name | camelCase }} *model.{{ $.Name }}) (*model.{{ $o.Type.Name }}, error) {
+    {{- $id := printf "%s.%sID" ($.Name | camelCase) ($o.Name | pascalCase) }}
+    {{- if eq $o.Type.NonNull false }}
+    return c.Resolver.{{ $o.Type.Name }}.Get(ctx, {{$id}})
+    {{- else }}
+    return c.Resolver.{{ $o.Type.Name }}.Get(ctx, &{{$id}})
+    {{- end }}
+}
+{{- end }}
+
+
+{{- range $o := .OneToMany }}
+{{- $targetType := trimSuffix $o.Type.Name "Connection" }}
+func (c *{{ $.Name }}Resolver) {{ $o.Name | pascalCase }}(ctx context.Context, {{ $.Name | camelCase }} *model.{{ $.Name }}, after *string, first *int, before *string, last *int, filterBy *model.{{ $targetType }}Filter, orderBy []*model.{{ $targetType }}Order) (*relay.Connection[*model.{{ $targetType }}], error) {
+	// TODO: Need to cooperate with the corresponding one to one 
+	// filterBy.{{ $.Name }} = &model.{{ $.Name }}Filter{
+	// 	ID: &model.IDFilter{Equals: &{{ $.Name | camelCase }}.ID},
+	// }
+	return c.Resolver.{{ $targetType }}.List(ctx, after, first, before, last, filterBy, orderBy)
+}
+{{- end }}
+
+{{- if .CreateInput }}
+
+func (c *{{ .Name }}Resolver) new(_ context.Context, input model.Create{{ .Name }}Input) *model.{{ .Name }} {
+	return &model.{{ .Name }}{
+		ID: generateID(),
+		{{- range $f := .CreateInput.Fields }}
+		{{- if $.Field $f.GoName }}
+		{{ $f.GoName }}: input.{{ $f.GoName }},
+		{{- end }}
+		{{- end }}
+	}
+}
+
+func (c *{{ .Name }}Resolver) create(ctx context.Context, {{ .Name | camelCase }} *model.{{ .Name }}) error {
+	db := c.DB(ctx)
+	if err := db.Create({{ .Name | camelCase }}).Error; err != nil {
+		return errors.Wrap(err, "failed to create {{ .Name | camelCase }}")
+	}
+	c.Loader(ctx).Prime({{ .Name | camelCase }}.ID, {{ .Name | camelCase }})
+	return nil
+}
+
+func (c *{{ .Name }}Resolver) Create(ctx context.Context, input model.Create{{ .Name }}Input) (*model.Create{{ .Name }}Payload, error) {
+	// TODO: should check permission
+    
+    {{ .Name | camelCase }} := c.new(ctx, input)
+
+	if err := c.validate(ctx, {{ .Name | camelCase }}); err != nil {
+		return nil, err
+	}
+
+	if err := c.create(ctx, {{ .Name | camelCase }}); err != nil {
+		return nil, err
+	}
+
+	return &model.Create{{ .Name }}Payload{
+		ClientMutationID: input.ClientMutationID,
+		{{ .Name }}:      {{ .Name | camelCase }},
+	}, nil
+}
+
+{{- end }}
+
+{{- if .UpdateInput }}
+
+func (c *{{ .Name }}Resolver) unmarshal(_ context.Context, {{ .Name | camelCase }} *model.{{ .Name }}, input model.Update{{ .Name }}Input, inputFields map[string]any) error {
+	{{- if not .UpdateInput.Fields }}
+	return nil
+	{{- else }}
+	for field := range inputFields {
+		switch field {
+		{{- range $f := .UpdateInput.Fields }}
+		{{- if $.Field $f.GoName }}
+		case "{{ $f.Name }}":
+			{{- if isPointerType ($.Field $f.GoName).GoType }}
+			{{ $.Name | camelCase }}.{{ $f.GoName }} = input.{{ $f.GoName }}
+			{{- else }}
+			{{ $.Name | camelCase }}.{{ $f.GoName }} = *input.{{ $f.GoName }}
+			{{- end }}
+		{{- end }}
+		{{- end }}
+		}
+	}
+	return nil
+	{{- end }}
+}
+
+func (c *{{ .Name }}Resolver) update(ctx context.Context, {{ .Name | camelCase }} *model.{{ .Name }}) error {
+	db := c.DB(ctx)
+	if err := db.Save({{ .Name | camelCase }}).Error; err != nil {
+		return errors.Wrap(err, "failed to update {{ .Name | camelCase }}")
+	}
+	c.Loader(ctx).Prime({{ .Name | camelCase }}.ID, {{ .Name | camelCase }})
+	return nil
+}
+
+func (c *{{ .Name }}Resolver) Update(ctx context.Context, input model.Update{{ .Name }}Input, inputFields map[string]any) (*model.Update{{ .Name }}Payload, error) {
+	// TODO: should check permission
+
+    // TODO: 还是要好好思考下为什么不能直接通过 dataloader 取出来的数据直接修改，而是要重新查一遍，难道是因为多个 mutation 的情况？
+    {{ .Name | camelCase }}, err := c.first(ctx, input.{{ .Name }}ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.unmarshal(ctx, {{ .Name | camelCase }}, input, inputFields); err != nil {
+		return nil, err
+	}
+
+	if err := c.validate(ctx, {{ .Name | camelCase }}); err != nil {
+		return nil, err
+	}
+
+	if err := c.update(ctx, {{ .Name | camelCase }}); err != nil {
+		return nil, err
+	}
+	
+	// TODO: 需要测试，这里返回之后的嵌套后续 resolver 会先执行，然后再执行另外一个 mutation 请求还是如何。
+	// TODO: 或许应该对于 mutation 操作应该单独的 dataloader ，而 query 则另说？
+
+	return &model.Update{{ .Name }}Payload{
+		ClientMutationID: input.ClientMutationID,
+		{{ .Name }}:      {{ .Name | camelCase }},
+	}, nil
+}
+
+{{- end }}
+
+{{- if .DeleteInput }}
+
+func (c *{{ .Name }}Resolver) delete(ctx context.Context, {{ .Name | camelCase }} *model.{{ .Name }}) error {
+	db := c.DB(ctx)
+	if err := db.Delete(&{{ .Name | camelCase }}).Error; err != nil {
+		return errors.Wrap(err, "failed to delete {{ .Name | camelCase }}")
+	}
+	c.Loader(ctx).Clear({{ .Name | camelCase }}.ID)
+	return nil
+}
+
+func (c *{{ .Name }}Resolver) Delete(ctx context.Context, input model.Delete{{ .Name }}Input) (*model.Delete{{ .Name }}Payload, error) {
+	// TODO: should check permission
+
+	{{ .Name | camelCase }}, err := c.first(ctx, input.{{ .Name }}ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.delete(ctx, {{ .Name | camelCase }}); err != nil {
+		return nil, err
+	}
+
+	return &model.Delete{{ .Name }}Payload{
+		ClientMutationID: input.ClientMutationID,
+		{{ .Name }}:      {{ .Name | camelCase }},
+	}, nil
+}
+
+{{- end }}
+
+func (c *{{ .Name }}Resolver) first(ctx context.Context, id string) (*model.{{ .Name }}, error) {
+	db := c.DB(ctx)
+
+	var {{ .Name | camelCase }} model.{{ .Name }}
+	if err := db.First(&{{ .Name | camelCase }}, "id = ?", id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.Wrap(err, "{{ .Name | camelCase }} not found")
+		}
+		return nil, errors.Wrap(err, "failed to fetch {{ .Name | camelCase }}")
+	}
+
+	return &{{ .Name | camelCase }}, nil
+}
+
+
+func (c *{{ .Name }}Resolver) validate(ctx context.Context, {{ .Name | camelCase }} *model.{{ .Name }}) error {
+	// TODO: should zod validate
+    // TODO: Add validation logic if needed
+	{{- range $o := .OneToOne }}
+	{{- $id := printf "%s.%sID" ($.Name | camelCase) ($o.Name | pascalCase) }}
+	{{- if eq $o.Type.NonNull false }}
+	if {{$id}} != nil {
+		_, err := c.Resolver.{{ $o.Type.Name }}.Get(ctx, {{$id}})
+	{{- else }}
+	if {{$id}} != "" {
+		_, err := c.Resolver.{{ $o.Type.Name }}.Get(ctx, &{{$id}})
+	{{- end }}
+		// TODO: 这里貌似应该从 db 里查才 OK ？
+		if err != nil {
+			return err
+		}
+	}
+	{{- end }}
+	return nil
+}
+
+{{- if and (.Definition.Fields.ForName "viewerPermission") (.ViewerPermission) }}
+func (c *{{ .Name }}Resolver) ViewerPermission(ctx context.Context, {{ .Name | camelCase }} *model.{{ .Name }}) (*model.{{ .Name }}ViewerPermission, error) {
+	// TODO: ladon
+	return &model.{{ .Name }}ViewerPermission{
+		{{- range $f := .ViewerPermission.Fields }}
+		{{ $f.GoName }}: true,
+		{{- end }}
+	}, nil
+}
+{{- end }}

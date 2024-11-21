@@ -1,0 +1,39 @@
+# // TODO: 最好限制此文件的修改，否则可能会导臃生成的代码不一致。
+
+schema:
+  - schema/*.graphql
+
+exec:
+  layout: follow-schema
+  dir: server/exec
+  package: exec
+
+model:
+  filename: server/model/models.gqlgen.go
+  package: model
+
+resolver:
+  type: GQLResolver
+  layout: follow-schema
+  dir: server
+  package: server
+  filename: server/gqlresolver.go
+  filename_template: "{name}.gqlresolver.go"
+
+call_argument_directives_with_null: true
+
+autobind:
+  - "github.com/molon/genx/starter/boilerplate/server/model"
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32

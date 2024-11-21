@@ -1,0 +1,15 @@
+devMode: false
+
+database:
+  dsn: ""
+  debug: false
+  maxIdleConns: 40
+  maxOpenConns: 200
+  connMaxLifetime: "1h"
+  connMaxIdleTime: "30m"
+
+server:
+  allowedOrigins: []
+  httpAddress: ":8686"
+  graphqlEndpoint: "/graphql"
+  playgroundEndpoint: "/"

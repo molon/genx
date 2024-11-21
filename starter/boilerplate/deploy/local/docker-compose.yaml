@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:17.0
+    container_name: genx_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: genx
+      POSTGRES_PASSWORD: genx
+      POSTGRES_DB: genx
+    ports:
+      - "8181:5432"

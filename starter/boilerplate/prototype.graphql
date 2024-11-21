@@ -1,0 +1,27 @@
+type Company @node {
+  name: String!
+  description: String
+  manager: User
+  employees: [User!]!
+}
+
+type User @node {
+  name: String!
+  description: String
+  age: Int!
+  company: Company!
+  tasks: [Task!]!
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+}
+
+type Task @node {
+  title: String!
+  description: String
+  status: TaskStatus!
+  assignee: User
+}

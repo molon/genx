@@ -1,0 +1,98 @@
+directive @node on OBJECT
+
+scalar Time
+scalar Cursor
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: Cursor
+  endCursor: Cursor
+}
+
+enum OrderDirection {
+  ASC
+  DESC
+}
+
+input StringFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  isNull: Boolean
+  fold: Boolean
+}
+
+input IntFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  isNull: Boolean
+}
+
+input FloatFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  isNull: Boolean
+}
+
+input BooleanFilter {
+  equals: String
+  not: String
+  isNull: Boolean
+}
+
+input TimeFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  isNull: Boolean
+}
+
+input IDFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  isNull: Boolean
+  fold: Boolean
+}
+
+input EnumFilter {
+  equals: String
+  not: String
+  in: [String!]
+  notIn: [String!]
+  isNull: Boolean
+}
