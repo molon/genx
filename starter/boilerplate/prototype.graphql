@@ -1,7 +1,6 @@
 type Company @node {
   name: String!
   description: String
-  manager: User
   employees: [User!]!
 }
 

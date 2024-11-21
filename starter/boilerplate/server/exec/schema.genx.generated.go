@@ -21,7 +21,6 @@ import (
 // region    ************************** generated!.gotpl **************************
 
 type CompanyResolver interface {
-	Manager(ctx context.Context, obj *model.Company) (*model.User, error)
 	Employees(ctx context.Context, obj *model.Company, after *string, first *int, before *string, last *int, filterBy *model.UserFilter, orderBy []*model.UserOrder) (*relay.Connection[*model.User], error)
 	ViewerPermission(ctx context.Context, obj *model.Company) (*model.CompanyViewerPermission, error)
 }
@@ -1075,67 +1074,6 @@ func (ec *executionContext) fieldContext_Company_description(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Company_manager(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Company_manager(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Company().Manager(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋmolonᚋgenxᚋstarterᚋboilerplateᚋserverᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Company_manager(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Company",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_User_updatedAt(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "description":
-				return ec.fieldContext_User_description(ctx, field)
-			case "age":
-				return ec.fieldContext_User_age(ctx, field)
-			case "company":
-				return ec.fieldContext_User_company(ctx, field)
-			case "tasks":
-				return ec.fieldContext_User_tasks(ctx, field)
-			case "viewerPermission":
-				return ec.fieldContext_User_viewerPermission(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Company_employees(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Company_employees(ctx, field)
 	if err != nil {
@@ -1302,8 +1240,6 @@ func (ec *executionContext) fieldContext_CompanyConnection_nodes(_ context.Conte
 				return ec.fieldContext_Company_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Company_description(ctx, field)
-			case "manager":
-				return ec.fieldContext_Company_manager(ctx, field)
 			case "employees":
 				return ec.fieldContext_Company_employees(ctx, field)
 			case "viewerPermission":
@@ -1509,8 +1445,6 @@ func (ec *executionContext) fieldContext_CompanyEdge_node(_ context.Context, fie
 				return ec.fieldContext_Company_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Company_description(ctx, field)
-			case "manager":
-				return ec.fieldContext_Company_manager(ctx, field)
 			case "employees":
 				return ec.fieldContext_Company_employees(ctx, field)
 			case "viewerPermission":
@@ -1788,8 +1722,6 @@ func (ec *executionContext) fieldContext_CreateCompanyPayload_company(_ context.
 				return ec.fieldContext_Company_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Company_description(ctx, field)
-			case "manager":
-				return ec.fieldContext_Company_manager(ctx, field)
 			case "employees":
 				return ec.fieldContext_Company_employees(ctx, field)
 			case "viewerPermission":
@@ -2099,8 +2031,6 @@ func (ec *executionContext) fieldContext_DeleteCompanyPayload_company(_ context.
 				return ec.fieldContext_Company_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Company_description(ctx, field)
-			case "manager":
-				return ec.fieldContext_Company_manager(ctx, field)
 			case "employees":
 				return ec.fieldContext_Company_employees(ctx, field)
 			case "viewerPermission":
@@ -4272,8 +4202,6 @@ func (ec *executionContext) fieldContext_UpdateCompanyPayload_company(_ context.
 				return ec.fieldContext_Company_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Company_description(ctx, field)
-			case "manager":
-				return ec.fieldContext_Company_manager(ctx, field)
 			case "employees":
 				return ec.fieldContext_Company_employees(ctx, field)
 			case "viewerPermission":
@@ -4803,8 +4731,6 @@ func (ec *executionContext) fieldContext_User_company(_ context.Context, field g
 				return ec.fieldContext_Company_name(ctx, field)
 			case "description":
 				return ec.fieldContext_Company_description(ctx, field)
-			case "manager":
-				return ec.fieldContext_Company_manager(ctx, field)
 			case "employees":
 				return ec.fieldContext_Company_employees(ctx, field)
 			case "viewerPermission":
@@ -5434,7 +5360,7 @@ func (ec *executionContext) unmarshalInputCompanyFilter(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "createdAt", "updatedAt", "name", "description", "manager"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "createdAt", "updatedAt", "name", "description"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5497,13 +5423,6 @@ func (ec *executionContext) unmarshalInputCompanyFilter(ctx context.Context, obj
 				return it, err
 			}
 			it.Description = data
-		case "manager":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("manager"))
-			data, err := ec.unmarshalOUserFilter2ᚖgithubᚗcomᚋmolonᚋgenxᚋstarterᚋboilerplateᚋserverᚋmodelᚐUserFilter(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Manager = data
 		}
 	}
 
@@ -5551,7 +5470,7 @@ func (ec *executionContext) unmarshalInputCreateCompanyInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"clientMutationId", "name", "description", "managerId"}
+	fieldsInOrder := [...]string{"clientMutationId", "name", "description"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5579,13 +5498,6 @@ func (ec *executionContext) unmarshalInputCreateCompanyInput(ctx context.Context
 				return it, err
 			}
 			it.Description = data
-		case "managerId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("managerId"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ManagerID = data
 		}
 	}
 
@@ -6461,7 +6373,7 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"clientMutationId", "companyId", "name", "description", "managerId"}
+	fieldsInOrder := [...]string{"clientMutationId", "companyId", "name", "description"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6496,13 +6408,6 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 				return it, err
 			}
 			it.Description = data
-		case "managerId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("managerId"))
-			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ManagerID = data
 		}
 	}
 
@@ -6798,39 +6703,6 @@ func (ec *executionContext) _Company(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "description":
 			out.Values[i] = ec._Company_description(ctx, field, obj)
-		case "manager":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Company_manager(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "employees":
 			field := field
 

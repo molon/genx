@@ -49,7 +49,6 @@ type ComplexityRoot struct {
 		Description      func(childComplexity int) int
 		Employees        func(childComplexity int, after *string, first *int, before *string, last *int, filterBy *model.UserFilter, orderBy []*model.UserOrder) int
 		ID               func(childComplexity int) int
-		Manager          func(childComplexity int) int
 		Name             func(childComplexity int) int
 		UpdatedAt        func(childComplexity int) int
 		ViewerPermission func(childComplexity int) int
@@ -254,13 +253,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Company.ID(childComplexity), true
-
-	case "Company.manager":
-		if e.complexity.Company.Manager == nil {
-			break
-		}
-
-		return e.complexity.Company.Manager(childComplexity), true
 
 	case "Company.name":
 		if e.complexity.Company.Name == nil {
@@ -1138,7 +1130,6 @@ type Company {
   updatedAt: Time!
   name: String!
   description: String
-  manager: User
   employees(after: Cursor, first: Int, before: Cursor, last: Int, filterBy: UserFilter, orderBy: [UserOrder!]): UserConnection!
   viewerPermission: CompanyViewerPermission!
 }
@@ -1167,7 +1158,6 @@ input CompanyFilter {
   updatedAt: TimeFilter
   name: StringFilter
   description: StringFilter
-  manager: UserFilter
 }
 #
 
@@ -1190,7 +1180,6 @@ input CreateCompanyInput {
   clientMutationId: String
   name: String!
   description: String
-  managerId: ID
 }
 #
 
@@ -1205,7 +1194,6 @@ input UpdateCompanyInput {
   companyId: ID!
   name: String
   description: String
-  managerId: ID
 }
 #
 

@@ -75,4 +75,4 @@ require (
 	mvdan.cc/gofumpt v0.7.0 // indirect
 )
 
-// replace github.com/molon/genx => ../../
+replace github.com/molon/genx => ../../

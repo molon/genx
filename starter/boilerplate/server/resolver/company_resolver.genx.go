@@ -95,10 +95,6 @@ func (c *CompanyResolver) List(ctx context.Context, after *string, first *int, b
 	)
 }
 
-func (c *CompanyResolver) Manager(ctx context.Context, company *model.Company) (*model.User, error) {
-	return c.Resolver.User.Get(ctx, company.ManagerID)
-}
-
 func (c *CompanyResolver) Employees(ctx context.Context, company *model.Company, after *string, first *int, before *string, last *int, filterBy *model.UserFilter, orderBy []*model.UserOrder) (*relay.Connection[*model.User], error) {
 	// TODO: Need to cooperate with the corresponding one to one
 	// filterBy.Company = &model.CompanyFilter{
@@ -112,7 +108,6 @@ func (c *CompanyResolver) new(_ context.Context, input model.CreateCompanyInput)
 		ID:          generateID(),
 		Name:        input.Name,
 		Description: input.Description,
-		ManagerID:   input.ManagerID,
 	}
 }
 
@@ -151,8 +146,6 @@ func (c *CompanyResolver) unmarshal(_ context.Context, company *model.Company, i
 			company.Name = *input.Name
 		case "description":
 			company.Description = input.Description
-		case "managerId":
-			company.ManagerID = input.ManagerID
 		}
 	}
 	return nil
@@ -241,13 +234,6 @@ func (c *CompanyResolver) first(ctx context.Context, id string) (*model.Company,
 func (c *CompanyResolver) validate(ctx context.Context, company *model.Company) error {
 	// TODO: should zod validate
 	// TODO: Add validation logic if needed
-	if company.ManagerID != nil {
-		_, err := c.Resolver.User.Get(ctx, company.ManagerID)
-		// TODO: 这里貌似应该从 db 里查才 OK ？
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 

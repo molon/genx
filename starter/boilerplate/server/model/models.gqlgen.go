@@ -23,7 +23,6 @@ type CompanyFilter struct {
 	UpdatedAt   *TimeFilter      `json:"updatedAt,omitempty"`
 	Name        *StringFilter    `json:"name,omitempty"`
 	Description *StringFilter    `json:"description,omitempty"`
-	Manager     *UserFilter      `json:"manager,omitempty"`
 }
 
 type CompanyOrder struct {
@@ -41,7 +40,6 @@ type CreateCompanyInput struct {
 	ClientMutationID *string `json:"clientMutationId,omitempty"`
 	Name             string  `json:"name"`
 	Description      *string `json:"description,omitempty"`
-	ManagerID        *string `json:"managerId,omitempty"`
 }
 
 type CreateCompanyPayload struct {
@@ -216,7 +214,6 @@ type UpdateCompanyInput struct {
 	CompanyID        string  `json:"companyId"`
 	Name             *string `json:"name,omitempty"`
 	Description      *string `json:"description,omitempty"`
-	ManagerID        *string `json:"managerId,omitempty"`
 }
 
 type UpdateCompanyPayload struct {

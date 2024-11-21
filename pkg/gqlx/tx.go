@@ -71,20 +71,20 @@ var _ interface {
 	graphql.HandlerExtension
 	graphql.OperationContextMutator
 	graphql.ResponseInterceptor
-} = TxMutator{}
+} = &TxMutator{}
 
 func (TxMutator) ExtensionName() string {
 	return "TxMutator"
 }
 
-func (t TxMutator) Validate(graphql.ExecutableSchema) error {
+func (t *TxMutator) Validate(graphql.ExecutableSchema) error {
 	if t.TxOpener == nil {
 		return errors.New("tx_mutator: tx opener is nil")
 	}
 	return nil
 }
 
-func (t TxMutator) MutateOperationContext(_ context.Context, oc *graphql.OperationContext) *gqlerror.Error {
+func (t *TxMutator) MutateOperationContext(_ context.Context, oc *graphql.OperationContext) *gqlerror.Error {
 	if !t.skipTx(oc.Operation) {
 		previous := oc.ResolverMiddleware
 		var mu sync.Mutex
@@ -98,7 +98,7 @@ func (t TxMutator) MutateOperationContext(_ context.Context, oc *graphql.Operati
 	return nil
 }
 
-func (t TxMutator) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
+func (t *TxMutator) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
 	// TODO: 如果调用者直接调用了两个 mutation， 它们会在一个事务里吗？
 	op := graphql.GetOperationContext(ctx).Operation
 	if t.skipTx(op) {
@@ -129,6 +129,6 @@ func (t TxMutator) InterceptResponse(ctx context.Context, next graphql.ResponseH
 	return rsp
 }
 
-func (t TxMutator) skipTx(op *ast.OperationDefinition) bool {
+func (t *TxMutator) skipTx(op *ast.OperationDefinition) bool {
 	return op == nil || op.Operation != ast.Mutation || (t.TxSkipFunc != nil && t.TxSkipFunc(op))
 }

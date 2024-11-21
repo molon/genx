@@ -29,6 +29,7 @@ func NewGQLHandler(db *gorm.DB) http.Handler {
 			},
 		),
 	)
-	srv.Use(gqlx.TxMutator{TxOpener: resolver})
+	srv.Use(&gqlx.LoggingInterceptor{})
+	srv.Use(&gqlx.TxMutator{TxOpener: resolver})
 	return resolver.Middleware(srv)
 }

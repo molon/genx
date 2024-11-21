@@ -18,7 +18,6 @@ type Company struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deletedAt"`
 	Name        string         `gorm:"not null" json:"name"`
 	Description *string        `json:"description,omitempty"`
-	ManagerID   *string        `json:"managerId,omitempty"`
 }
 
 type (
