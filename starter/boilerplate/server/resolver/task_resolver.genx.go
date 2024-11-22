@@ -50,7 +50,17 @@ func (c *TaskResolver) batchRead(ctx context.Context, ids []string) ([]*model.Ta
 	if err := db.Find(&tasks, "id IN ?", ids).Error; err != nil {
 		return nil, []error{errors.Wrap(err, "failed to find tasks")}
 	}
-	return tasks, nil
+
+	idToTask := make(map[string]*model.Task, len(tasks))
+	for _, task := range tasks {
+		idToTask[task.ID] = task
+	}
+
+	result := make([]*model.Task, len(ids))
+	for i, id := range ids {
+		result[i] = idToTask[id]
+	}
+	return result, nil
 }
 
 func (c *TaskResolver) NewLoader() *dataloadgen.Loader[string, *model.Task] {
@@ -67,7 +77,6 @@ func (c *TaskResolver) Loader(ctx context.Context) *dataloadgen.Loader[string, *
 
 func (c *TaskResolver) Get(ctx context.Context, id *string) (*model.Task, error) {
 	if id == nil {
-		// TODO: should return nil or error?
 		return nil, nil
 	}
 	return c.Loader(ctx).Load(ctx, *id)
@@ -237,10 +246,13 @@ func (c *TaskResolver) validate(ctx context.Context, task *model.Task) error {
 	// TODO: should zod validate
 	// TODO: Add validation logic if needed
 	if task.AssigneeID != nil {
-		_, err := c.Resolver.User.Get(ctx, task.AssigneeID)
+		assignee, err := c.Resolver.User.Get(ctx, task.AssigneeID)
 		// TODO: 这里貌似应该从 db 里查才 OK ？
 		if err != nil {
 			return err
+		}
+		if assignee == nil {
+			return errors.New("assignee not found")
 		}
 	}
 	return nil

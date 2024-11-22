@@ -14,6 +14,9 @@ import (
 	_ "embed"
 )
 
+// TODO: 这个打包塞的东西太多了，貌似还是应该基于 git archive 来做
+// TODO: 应该支持 Extract 之后执行一下将 go.mod 里的 replace 替换成真实的 goModule ，并且执行一次 go mod tidy
+
 //go:generate sh -c "cd boilerplate && zip -q -X -o ../boilerplate.zip -r ."
 //go:embed boilerplate.zip
 var boilerplateZip []byte

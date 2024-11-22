@@ -50,7 +50,17 @@ func (c *{{ .Name }}Resolver) batchRead(ctx context.Context, ids []string) ([]*m
 	if err := db.Find(&{{ .Name | camelCase | plural }}, "id IN ?", ids).Error; err != nil {
 		return nil, []error{errors.Wrap(err, "failed to find {{ .Name | camelCase | plural }}")}
 	}
-	return {{ .Name | camelCase | plural }}, nil
+
+	idTo{{ .Name }} := make(map[string]*model.{{ .Name }}, len({{ .Name | camelCase | plural }}))
+	for _, {{ .Name | camelCase }} := range {{ .Name | camelCase | plural }} {
+		idTo{{ .Name }}[{{ .Name | camelCase }}.ID] = {{ .Name | camelCase }}
+	}
+
+	result := make([]*model.{{ .Name }}, len(ids))
+	for i, id := range ids {
+		result[i] = idTo{{ .Name }}[id]
+	}
+	return result, nil
 }
 
 func (c *{{ .Name }}Resolver) NewLoader() *dataloadgen.Loader[string, *model.{{ .Name }}] {
@@ -67,7 +77,6 @@ func (c *{{ .Name }}Resolver) Loader(ctx context.Context) *dataloadgen.Loader[st
 
 func (c *{{ .Name }}Resolver) Get(ctx context.Context, id *string) (*model.{{ .Name }}, error) {
 	if id == nil {
-		// TODO: should return nil or error?
 		return nil, nil
 	}
 	return c.Loader(ctx).Load(ctx, *id)
@@ -278,15 +287,18 @@ func (c *{{ .Name }}Resolver) validate(ctx context.Context, {{ .Name | camelCase
 	{{- range $o := .OneToOne }}
 	{{- $id := printf "%s.%sID" ($.Name | camelCase) ($o.Name | pascalCase) }}
 	{{- if eq $o.Type.NonNull false }}
-	if {{$id}} != nil {
-		_, err := c.Resolver.{{ $o.Type.Name }}.Get(ctx, {{$id}})
+	if {{ $id }} != nil {
+		{{ $o.Name }}, err := c.Resolver.{{ $o.Type.Name }}.Get(ctx, {{ $id }})
 	{{- else }}
-	if {{$id}} != "" {
-		_, err := c.Resolver.{{ $o.Type.Name }}.Get(ctx, &{{$id}})
+	if {{ $id }} != "" {
+		{{ $o.Name }}, err := c.Resolver.{{ $o.Type.Name }}.Get(ctx, &{{ $id }})
 	{{- end }}
 		// TODO: 这里貌似应该从 db 里查才 OK ？
 		if err != nil {
 			return err
+		}
+		if {{ $o.Name }} == nil {
+			return errors.New("{{ $o.Name }} not found")
 		}
 	}
 	{{- end }}

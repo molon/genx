@@ -50,7 +50,17 @@ func (c *CompanyResolver) batchRead(ctx context.Context, ids []string) ([]*model
 	if err := db.Find(&companies, "id IN ?", ids).Error; err != nil {
 		return nil, []error{errors.Wrap(err, "failed to find companies")}
 	}
-	return companies, nil
+
+	idToCompany := make(map[string]*model.Company, len(companies))
+	for _, company := range companies {
+		idToCompany[company.ID] = company
+	}
+
+	result := make([]*model.Company, len(ids))
+	for i, id := range ids {
+		result[i] = idToCompany[id]
+	}
+	return result, nil
 }
 
 func (c *CompanyResolver) NewLoader() *dataloadgen.Loader[string, *model.Company] {
@@ -67,7 +77,6 @@ func (c *CompanyResolver) Loader(ctx context.Context) *dataloadgen.Loader[string
 
 func (c *CompanyResolver) Get(ctx context.Context, id *string) (*model.Company, error) {
 	if id == nil {
-		// TODO: should return nil or error?
 		return nil, nil
 	}
 	return c.Loader(ctx).Load(ctx, *id)

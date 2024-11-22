@@ -4,7 +4,7 @@ generate:
 	@go generate ./... && go mod tidy
 
 start-database:
-	@docker compose -f ./deploy/local/docker-compose.yaml --project-name genx_project up -d
+	@docker compose up -d
 
 migrate:
 	@go run ./cmd/server migrate \

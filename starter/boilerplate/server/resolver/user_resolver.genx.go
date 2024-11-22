@@ -50,7 +50,17 @@ func (c *UserResolver) batchRead(ctx context.Context, ids []string) ([]*model.Us
 	if err := db.Find(&users, "id IN ?", ids).Error; err != nil {
 		return nil, []error{errors.Wrap(err, "failed to find users")}
 	}
-	return users, nil
+
+	idToUser := make(map[string]*model.User, len(users))
+	for _, user := range users {
+		idToUser[user.ID] = user
+	}
+
+	result := make([]*model.User, len(ids))
+	for i, id := range ids {
+		result[i] = idToUser[id]
+	}
+	return result, nil
 }
 
 func (c *UserResolver) NewLoader() *dataloadgen.Loader[string, *model.User] {
@@ -67,7 +77,6 @@ func (c *UserResolver) Loader(ctx context.Context) *dataloadgen.Loader[string, *
 
 func (c *UserResolver) Get(ctx context.Context, id *string) (*model.User, error) {
 	if id == nil {
-		// TODO: should return nil or error?
 		return nil, nil
 	}
 	return c.Loader(ctx).Load(ctx, *id)
@@ -245,10 +254,13 @@ func (c *UserResolver) validate(ctx context.Context, user *model.User) error {
 	// TODO: should zod validate
 	// TODO: Add validation logic if needed
 	if user.CompanyID != "" {
-		_, err := c.Resolver.Company.Get(ctx, &user.CompanyID)
+		company, err := c.Resolver.Company.Get(ctx, &user.CompanyID)
 		// TODO: 这里貌似应该从 db 里查才 OK ？
 		if err != nil {
 			return err
+		}
+		if company == nil {
+			return errors.New("company not found")
 		}
 	}
 	return nil
