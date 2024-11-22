@@ -43,8 +43,8 @@ func Extract(ctx context.Context, conf *Config) error {
 
 	var reader io.ReaderAt
 	var size int64
-	if conf.ZipFile != "" {
-		file, err := os.Open(conf.ZipFile)
+	if conf.BoilerplateZipFile != "" {
+		file, err := os.Open(conf.BoilerplateZipFile)
 		if err != nil {
 			return errors.Wrap(err, "failed to open zip file")
 		}
