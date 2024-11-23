@@ -13,7 +13,7 @@ type File struct {
 }
 
 func (f *File) Format(ctx context.Context) error {
-	content, err := formatText(ctx, filepath.Ext(f.RelPath), f.Content)
+	content, err := FormatText(ctx, filepath.Ext(f.RelPath), f.Content)
 	if err != nil {
 		return errors.Wrapf(err, "failed to format %s", f.RelPath)
 	}
@@ -26,7 +26,7 @@ func (f *File) ApplyReplacements(ctx context.Context, replacements Replacements)
 	if err != nil {
 		return errors.Wrapf(err, "failed to apply replacements to %s", f.RelPath)
 	}
-	content, err := formatText(ctx, filepath.Ext(f.RelPath), text)
+	content, err := FormatText(ctx, filepath.Ext(f.RelPath), text)
 	if err != nil {
 		return errors.Wrapf(err, "failed to format %s after applying replacements", f.RelPath)
 	}

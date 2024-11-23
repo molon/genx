@@ -126,8 +126,10 @@ func (r *GQLResolver) Task() exec.TaskResolver { return &taskGQLResolver{r} }
 // User returns exec.UserResolver implementation.
 func (r *GQLResolver) User() exec.UserResolver { return &userGQLResolver{r} }
 
-type companyGQLResolver struct{ *GQLResolver }
-type mutationGQLResolver struct{ *GQLResolver }
-type queryGQLResolver struct{ *GQLResolver }
-type taskGQLResolver struct{ *GQLResolver }
-type userGQLResolver struct{ *GQLResolver }
+type (
+	companyGQLResolver  struct{ *GQLResolver }
+	mutationGQLResolver struct{ *GQLResolver }
+	queryGQLResolver    struct{ *GQLResolver }
+	taskGQLResolver     struct{ *GQLResolver }
+	userGQLResolver     struct{ *GQLResolver }
+)

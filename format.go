@@ -8,10 +8,10 @@ import (
 	"mvdan.cc/gofumpt/format"
 )
 
-func formatText(_ context.Context, ext, text string) (string, error) {
+func FormatText(_ context.Context, ext, text string) (string, error) {
 	switch ext {
 	case ".go":
-		formatted, err := formatGo(text)
+		formatted, err := FormatGo(text)
 		if err != nil {
 			return "", errors.Wrapf(err, "failed to format %s", ext)
 		}
@@ -20,7 +20,7 @@ func formatText(_ context.Context, ext, text string) (string, error) {
 	return text, nil
 }
 
-func formatGo(source string) (string, error) {
+func FormatGo(source string) (string, error) {
 	formatted, err := imports.Process("dummy.go", []byte(source), &imports.Options{
 		AllErrors:  false,
 		Comments:   true,
