@@ -26,7 +26,7 @@ var initCmd = &cobra.Command{
 		}
 
 		if err := starter.Extract(context.Background(), conf); err != nil {
-			log.Fatalf("Failed to extract starter boilerplate: %v", err)
+			log.Fatalf("Failed to extract starter boilerplate: %+v", err)
 		}
 	},
 }

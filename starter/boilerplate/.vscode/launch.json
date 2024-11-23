@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Serve",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/cmd/server",
+            "args": [
+                "serve",
+                "--config=${workspaceFolder}/.vscode/config.yaml"
+            ]
+        },
+        {
+            "name": "Launch Generate",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/cmd/generate",
+            "args": [
+                "-o=${workspaceFolder}/starter/boilerplate",
+            ]
+        }
+    ]
+}

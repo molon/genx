@@ -21,6 +21,11 @@ func (e *Extension) GQLPlugins() []plugin.Plugin {
 	return []plugin.Plugin{e.gqlResolverImpl}
 }
 
+var (
+	_ plugin.ResolverImplementer = (*gqlResolverImplementer)(nil)
+	_ plugin.CodeGenerator       = (*gqlResolverImplementer)(nil)
+)
+
 type gqlResolverImplementer struct {
 	data *Data
 }
