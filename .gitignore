@@ -1,3 +1,5 @@
 .DS_Store
 __*
 .vscode
+!starter/boilerplate/.vscode/
+!starter/boilerplate/.vscode/**

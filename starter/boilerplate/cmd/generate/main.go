@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/molon/genx"
+	"github.com/molon/genx/extension/cleanup"
 	"github.com/molon/genx/extension/gosurgery"
 	"github.com/molon/genx/extension/gqlgenext"
 	"github.com/molon/genx/extension/relayext"
@@ -39,6 +40,7 @@ func Generate(ctx context.Context) error {
 			relayext.New(),
 			gosurgery.New(),
 			gqlgenext.New(),
+			cleanup.New(),
 		},
 	}); err != nil {
 		return errors.Wrap(err, "failed to generate")

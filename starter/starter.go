@@ -4,8 +4,10 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -14,11 +16,11 @@ import (
 	_ "embed"
 )
 
-// TODO: 这个打包塞的东西太多了，貌似还是应该基于 git archive 来做
 // TODO: 应该支持 Extract 之后执行一下将 go.mod 里的 replace 替换成真实的 goModule ，并且执行一次 go mod tidy
-// TODO: 下面这个命令貌似也有问题，在内部文件被删除之后实际 zip 里还是会存在
 
-//go:generate sh -c "cd boilerplate && zip -q -X -o ../boilerplate.zip -r ."
+// zip boilerplate directory without files ignored by .gitignore
+//go:generate sh -c "rm -f boilerplate.zip && cd boilerplate && git ls-files --cached --others --exclude-standard -z | xargs -0 zip -q -X -o ../boilerplate.zip"
+
 //go:embed boilerplate.zip
 var boilerplateZip []byte
 
@@ -47,7 +49,7 @@ func Extract(ctx context.Context, conf *Config) error {
 	if conf.BoilerplateZipFile != "" {
 		file, err := os.Open(conf.BoilerplateZipFile)
 		if err != nil {
-			return errors.Wrap(err, "failed to open zip file")
+			return errors.Wrapf(err, "failed to open boilerplate zip file: %s", conf.BoilerplateZipFile)
 		}
 		defer file.Close()
 
@@ -63,10 +65,24 @@ func Extract(ctx context.Context, conf *Config) error {
 		size = int64(len(boilerplateZip))
 	}
 
-	return extractZip(ctx, reader, size, targetDir, func(ctx context.Context, path string, content []byte) ([]byte, error) {
+	goModFileModified := false
+	if err := extractZip(ctx, reader, size, targetDir, func(ctx context.Context, path string, content []byte) ([]byte, error) {
 		content = bytes.ReplaceAll(content, boilerplateGoModule, []byte(conf.GoModule))
+		if strings.HasSuffix(path, "/go.mod") || path == "go.mod" {
+			content = bytes.ReplaceAll(content, []byte("replace github.com/molon/genx => ../../"), []byte{})
+			goModFileModified = true
+		}
 		return content, nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	if goModFileModified {
+		if err := updateGoDependency(targetDir, "github.com/molon/genx", "latest"); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func extractZip(ctx context.Context, reader io.ReaderAt, size int64, targetDir string, modifier func(ctx context.Context, path string, content []byte) ([]byte, error)) error {
@@ -84,7 +100,14 @@ func extractZip(ctx context.Context, reader io.ReaderAt, size int64, targetDir s
 			return errors.Errorf("illegal file path: %s", path)
 		}
 
+		// Ensure the parent directory exists
+		if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
+			return errors.Wrapf(err, "failed to create directory for file: %s", path)
+		}
+
+		// Handle directories (if explicitly marked)
 		if file.FileInfo().IsDir() {
+			// Create the directory (even if MkdirAll above ensures it exists)
 			if err := os.MkdirAll(path, os.ModePerm); err != nil {
 				return errors.Wrap(err, "failed to create directory")
 			}
@@ -114,7 +137,7 @@ func extractZip(ctx context.Context, reader io.ReaderAt, size int64, targetDir s
 
 		// Write the file with original permissions
 		if err := os.WriteFile(path, content, file.Mode()); err != nil {
-			return errors.Wrap(err, "failed to write file content")
+			return errors.Wrapf(err, "failed to write file: %s", path)
 		}
 	}
 
@@ -143,6 +166,18 @@ func checkTargetDir(targetDir string) error {
 		} else if err != io.EOF {
 			return err
 		}
+	}
+	return nil
+}
+
+func updateGoDependency(targetDir, module, version string) error {
+	dep := fmt.Sprintf("%s@%s", module, version)
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("go get %s && go mod tidy", dep))
+	cmd.Dir = targetDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return errors.Wrapf(err, "failed to run 'go get %s && go mod tidy'", dep)
 	}
 	return nil
 }

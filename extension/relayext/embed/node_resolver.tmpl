@@ -280,7 +280,6 @@ func (c *{{ .Name }}Resolver) first(ctx context.Context, id string) (*model.{{ .
 	return &{{ .Name | camelCase }}, nil
 }
 
-
 func (c *{{ .Name }}Resolver) validate(ctx context.Context, {{ .Name | camelCase }} *model.{{ .Name }}) error {
 	// TODO: should zod validate
     // TODO: Add validation logic if needed
@@ -306,6 +305,7 @@ func (c *{{ .Name }}Resolver) validate(ctx context.Context, {{ .Name | camelCase
 }
 
 {{- if and (.Definition.Fields.ForName "viewerPermission") (.ViewerPermission) }}
+
 func (c *{{ .Name }}Resolver) ViewerPermission(ctx context.Context, {{ .Name | camelCase }} *model.{{ .Name }}) (*model.{{ .Name }}ViewerPermission, error) {
 	// TODO: ladon
 	return &model.{{ .Name }}ViewerPermission{
@@ -314,4 +314,5 @@ func (c *{{ .Name }}Resolver) ViewerPermission(ctx context.Context, {{ .Name | c
 		{{- end }}
 	}, nil
 }
+
 {{- end }}

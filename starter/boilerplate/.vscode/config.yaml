@@ -1,0 +1,15 @@
+devMode: true
+
+database:
+  dsn: "host=localhost user=genx password=genx dbname=genx port=8181 sslmode=disable TimeZone=Asia/Shanghai"
+  debug: false
+  maxIdleConns: 40
+  maxOpenConns: 200
+  connMaxLifetime: "1h"
+  connMaxIdleTime: "30m"
+
+server:
+  allowedOrigins: ["http://localhost:8686"]
+  httpAddress: "localhost:8686"
+  graphqlEndpoint: "/graphql"
+  playgroundEndpoint: "/"
