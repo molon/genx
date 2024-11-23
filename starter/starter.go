@@ -4,8 +4,10 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -63,10 +65,24 @@ func Extract(ctx context.Context, conf *Config) error {
 		size = int64(len(boilerplateZip))
 	}
 
-	return extractZip(ctx, reader, size, targetDir, func(ctx context.Context, path string, content []byte) ([]byte, error) {
+	goModFileModified := false
+	if err := extractZip(ctx, reader, size, targetDir, func(ctx context.Context, path string, content []byte) ([]byte, error) {
 		content = bytes.ReplaceAll(content, boilerplateGoModule, []byte(conf.GoModule))
+		if strings.HasSuffix(path, "/go.mod") || path == "go.mod" {
+			content = bytes.ReplaceAll(content, []byte("replace github.com/molon/genx => ../../"), []byte{})
+			goModFileModified = true
+		}
 		return content, nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	if goModFileModified {
+		if err := updateGoDependency(targetDir, "github.com/molon/genx", "latest"); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func extractZip(ctx context.Context, reader io.ReaderAt, size int64, targetDir string, modifier func(ctx context.Context, path string, content []byte) ([]byte, error)) error {
@@ -150,6 +166,18 @@ func checkTargetDir(targetDir string) error {
 		} else if err != io.EOF {
 			return err
 		}
+	}
+	return nil
+}
+
+func updateGoDependency(targetDir, module, version string) error {
+	dep := fmt.Sprintf("%s@%s", module, version)
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("go get %s && go mod tidy", dep))
+	cmd.Dir = targetDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return errors.Wrapf(err, "failed to run 'go get %s && go mod tidy'", dep)
 	}
 	return nil
 }
