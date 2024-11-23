@@ -5,6 +5,7 @@ setup:
 	@echo "Git hooks path set to .githooks"
 
 pre-commit: generate
+	@git add .
 
 generate:
 	@go generate ./... && go mod tidy
