@@ -22,7 +22,7 @@ func (e *Extension) generateModels(_ context.Context, data *Data) ([]*genx.File,
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString(header)
+	buf.WriteString("// " + header)
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return nil, errors.Wrapf(err, "failed to execute template")
 	}

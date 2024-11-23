@@ -31,7 +31,7 @@ func FormatGo(source string) (string, error) {
 	}
 
 	formatted, err = format.Source(formatted, format.Options{
-		LangVersion: "go1.23.1",
+		LangVersion: "go1.23.0",
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to format Go source with gofumpt")

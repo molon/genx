@@ -16,8 +16,6 @@ import (
 	_ "embed"
 )
 
-// TODO: 应该支持 Extract 之后执行一下将 go.mod 里的 replace 替换成真实的 goModule ，并且执行一次 go mod tidy
-
 // zip boilerplate directory without files ignored by .gitignore
 //go:generate sh -c "rm -f boilerplate.zip && cd boilerplate && git ls-files --cached --others --exclude-standard -z | xargs -0 zip -q -X -o ../boilerplate.zip"
 
