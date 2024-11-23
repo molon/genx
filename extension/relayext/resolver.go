@@ -43,7 +43,7 @@ func (e *Extension) generateRootResolver(_ context.Context, data *Data) ([]*genx
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString(header)
+	buf.WriteString("// " + header)
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return nil, errors.Wrapf(err, "failed to execute resolver template")
 	}
@@ -66,7 +66,7 @@ func (e *Extension) generateNodeResolver(_ context.Context, data *Data, node *No
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString(header)
+	buf.WriteString("// " + header)
 	if err := tmpl.Execute(&buf, struct {
 		*Data
 		*Node

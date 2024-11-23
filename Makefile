@@ -4,7 +4,9 @@ setup:
 	@git config core.hooksPath .githooks
 	@echo "Git hooks path set to .githooks"
 
-pre-commit: generate
+pre-commit:
+	@cd ./starter/boilerplate && go generate ./... && go mod tidy
+	@go generate ./... && go mod tidy
 	@git add .
 
 generate:
