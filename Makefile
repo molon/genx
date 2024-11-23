@@ -11,6 +11,6 @@ generate:
 	@go generate ./... && go mod tidy
 
 starter: generate
-	@rm -rf ./starter/__example && \
-		mkdir -p ./starter/__example && \
-		go run ./cmd/genx init --target-dir=./starter/__example --go-module=github.com/molon/genx/starter/__example
+	@rm -rf ./starter/__genxexample && \
+		mkdir -p ./starter/__genxexample && \
+		go run ./cmd/genx init --target-dir=./starter/__genxexample --go-module=github.com/molon/genx/starter/__genxexample
