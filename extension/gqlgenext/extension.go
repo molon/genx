@@ -52,5 +52,6 @@ func (e *Extension) AfterGenerate(ctx context.Context, r *genx.Runtime) error {
 	if err := gqlapi.Generate(gqlconf, options...); err != nil {
 		return errors.Wrap(err, "failed to generate gqlgen")
 	}
+
 	return nil
 }
