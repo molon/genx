@@ -21,7 +21,7 @@
             "cwd": "${workspaceFolder}",
             "program": "${workspaceFolder}/cmd/generate",
             "args": [
-                "-o=${workspaceFolder}/starter/boilerplate",
+                "-o=${workspaceFolder}",
             ]
         }
     ]
