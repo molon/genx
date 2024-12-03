@@ -20,7 +20,7 @@ type DatabaseConfig struct {
 }
 
 type ServerConfig struct {
-	AllowedOrigins     []string `mapstructure:"allowedOrigins" usage:"CROS Allowed origins"`
+	AllowedOrigins     []string `mapstructure:"allowedOrigins" usage:"CORS allowed origins"`
 	HTTPAddress        string   `mapstructure:"httpAddress" usage:"HTTP server address"`
 	GraphQLEndpoint    string   `mapstructure:"graphqlEndpoint" usage:"GraphQL endpoint"`
 	PlaygroundEndpoint string   `mapstructure:"playgroundEndpoint" usage:"GraphQL playground endpoint"`
